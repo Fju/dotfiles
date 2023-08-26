@@ -1,0 +1,29 @@
+- name: "Install fish shell from source"
+  hosts: "*"
+  vars_files: ../vars/packages.yml
+  tasks:
+    - name: "Create directory {{ apps_dir }}"
+      ansible.builtin.file:
+        path: "{{ apps_dir }}"
+        state: directory
+        mode: "0775"
+    #- name: "Download source TAR from GitHub"
+    #  ansible.builtin.get_url:
+    #    url: "https://github.com/fish-shell/fish-shell/releases/download/{{ fish_version }}/fish-{{ fish_version }}.tar.xz"
+    #    checksum: "{{ fish_checksum }}"
+    #    dest: /tmp/fish.tar.xz
+    - name: "Unpack source TAR"
+      ansible.builtin.unarchive:
+        remote_src: yes
+        src: /tmp/fish.tar.xz
+        dest: "{{ apps_dir }}"
+    - name: "Make fish"
+      ansible.builtin.shell:
+        chdir: "{{ apps_dir }}/fish-{{ fish_version }}/"
+        cmd: cmake . && make
+    - name: "Install fish"
+      become: yes
+      ansible.builtin.command:
+        chdir: "{{ apps_dir }}/fish-{{ fish_version }}/"
+        cmd: make install
+
